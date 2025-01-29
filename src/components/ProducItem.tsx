@@ -1,66 +1,101 @@
-// src/components/ProductItem.tsx
-import React from 'react';
-import { IProduct } from '../context/ProductContext';
-import {
-  ListItem,
-  ListItemText,
-  Typography,
-  Button,
-  Box,
-} from '@mui/material';
-import { Link } from 'react-router-dom';
+import React, { useState } from "react";
+import { TextField, Button, Box, Typography } from "@mui/material";
+import { useNavigate } from "react-router-dom";
+import { useProductContext} from "../context/ProducContext.tsx";
 
-interface ProductItemProps {
-  product: IProduct;
-  onDelete: (id: number) => void;
-}
+const AddProduct: React.FC = () => {
+  const { addProduct, fetchProducts } = useProductContext(); // Usa o contexto
+  const navigate = useNavigate();
 
-const ProductItem: React.FC<ProductItemProps> = ({ product, onDelete }) => {
+  const [formData, setFormData] = useState({
+    name: "",
+    description: "",
+    price: "",
+    stock: "",
+  });
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setFormData({ ...formData, [e.target.name]: e.target.value });
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    if (!formData.name || !formData.price || !formData.stock) {
+      alert("Preencha os campos obrigatórios!");
+      return;
+    }
+
+    try {
+      await addProduct({
+        name: formData.name,
+        description: formData.description,
+        price: parseFloat(formData.price),
+        stock: parseInt(formData.stock),
+      });
+
+      fetchProducts(); // 🔄 Atualiza a lista de produtos
+      navigate("/"); // 🔄 Redireciona para a listagem
+    } catch (error) {
+      console.error("Erro ao adicionar produto:", error);
+    }
+  };
+
   return (
-    <ListItem
-      sx={{
-        border: '1px solid #e0e0e0',
-        borderRadius: '4px',
-        mb: 2,
-        boxShadow: 1,
-      }}
-    >
-      <ListItemText
-        primary={
-          <Typography variant="h6" component="div">
-            {product.name}
-          </Typography>
-        }
-        secondary={
-          <>
-            <Typography variant="body2" color="text.secondary">
-              {product.description}
-            </Typography>
-            <Typography variant="body1" color="primary" fontWeight="bold">
-              ${product.price}
-            </Typography>
-          </>
-        }
-      />
-      <Box sx={{ display: 'flex', gap: 2 }}>
-        <Button
-          variant="contained"
-          color="error"
-          onClick={() => onDelete(product.id)}
-        >
-          Deletar
-        </Button>
-        <Button
-          component={Link}
-          to={`/edit/${product.id}`}
-          variant="contained"
-          color="warning"
-        >
-          Editar
-        </Button>
+      <Box sx={{ p: 3, maxWidth: 500, mx: "auto" }}>
+        <Typography variant="h4" component="h1" gutterBottom>
+          Adicionar Produto
+        </Typography>
+        <form onSubmit={handleSubmit}>
+          <TextField
+              name="name"
+              label="Nome"
+              variant="outlined"
+              fullWidth
+              required
+              value={formData.name}
+              onChange={handleChange}
+              sx={{ mb: 2 }}
+          />
+          <TextField
+              name="description"
+              label="Descrição"
+              variant="outlined"
+              fullWidth
+              multiline
+              rows={3}
+              value={formData.description}
+              onChange={handleChange}
+              sx={{ mb: 2 }}
+          />
+          <TextField
+              name="price"
+              label="Preço"
+              type="number"
+              variant="outlined"
+              fullWidth
+              required
+              value={formData.price}
+              onChange={handleChange}
+              sx={{ mb: 2 }}
+          />
+          <TextField
+              name="stock"
+              label="Estoque"
+              type="number"
+              variant="outlined"
+              fullWidth
+              required
+              value={formData.stock}
+              onChange={handleChange}
+              sx={{ mb: 2 }}
+          />
+          <Button type="submit" variant="contained" color="primary" fullWidth>
+            Adicionar
+          </Button>
+        </form>
       </Box>
-    </ListItem>
   );
 };
 
-export default ProductItem;
+export default AddProduct;

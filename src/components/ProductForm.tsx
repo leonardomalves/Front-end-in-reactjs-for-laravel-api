@@ -1,99 +1,132 @@
-// src/components/ProductForm.tsx
 import React, { useState, useEffect } from "react";
-import {
-    TextField,
-    Button,
-    Stack,
-    Box,
-} from "@mui/material";
-import { IProduct } from "../interfaces/productsTypes";
-import { showProduct } from "../services/api";
-import { useParams } from "react-router-dom";
+import { TextField, Button, Box, Typography } from "@mui/material";
+import { useNavigate, useParams } from "react-router-dom";
+import { useProductContext} from "../context/ProducContext.tsx";
 
-interface ProductFormProps {
-    initialProduct?: IProduct;
-    onSubmit: (product: Omit<IProduct, "id">) => void;
-}
+const ProductForm: React.FC = () => {
+    const { id } = useParams<{ id: string }>(); // Obtém o ID da URL
+    const { addProduct, updateProduct, fetchProducts, products } = useProductContext();
+    const navigate = useNavigate();
 
-const ProductForm: React.FC<ProductFormProps> = ({
-                                                     initialProduct,
-                                                     onSubmit,
-                                                 }) => {
-    const { id } = useParams<{ id: string }>();
-    const [name, setName] = useState(initialProduct?.name || "");
-    const [price, setPrice] = useState(initialProduct?.price || 0);
-    const [description, setDescription] = useState(initialProduct?.description || "");
-    const [stock, setStock] = useState(initialProduct?.stock || 0);
-    const [loading, setLoading] = useState(false);
+    // Estado inicial do formulário
+    const initialFormState = {
+        name: "",
+        description: "",
+        price: "",
+        stock: "",
+    };
+
+    const [formData, setFormData] = useState(initialFormState);
 
     useEffect(() => {
-        // 🔹 Se for edição, buscar produto na API
-        const fetchProduct = async () => {
-            if (id) {
-                setLoading(true);
-                try {
-                    const product = await showProduct(Number(id));
-                    setName(product.name);
-                    setPrice(product.price);
-                    setDescription(product.description);
-                    setStock(product.stock);
-                } catch (error) {
-                    console.error("Erro ao buscar produto:", error);
-                } finally {
-                    setLoading(false);
-                }
+        if (id) {
+            // Se estiver editando, carregar os dados do produto
+            const product = products.find((p) => p.id === Number(id));
+            if (product) {
+                setFormData({
+                    name: product.name,
+                    description: product.description,
+                    price: product.price.toString(),
+                    stock: product.stock.toString(),
+                });
             }
-        };
-        fetchProduct();
-    }, [id]);
+        } else {
+            // Se for um novo produto, resetar o formulário
+            setFormData(initialFormState);
+        }
+    }, [id, products]);
 
-    const handleSubmit = (e: React.FormEvent) => {
+    const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        setFormData({ ...formData, [e.target.name]: e.target.value });
+    };
+
+    const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        onSubmit({ name, price, description, stock });
+
+        if (!formData.name || !formData.price || !formData.stock) {
+            alert("Preencha os campos obrigatórios!");
+            return;
+        }
+
+        try {
+            if (id) {
+                // Edição de produto
+                await updateProduct(Number(id), {
+                    name: formData.name,
+                    description: formData.description,
+                    price: parseFloat(formData.price),
+                    stock: parseInt(formData.stock),
+                });
+            } else {
+                // Criação de novo produto
+                await addProduct({
+                    name: formData.name,
+                    description: formData.description,
+                    price: parseFloat(formData.price),
+                    stock: parseInt(formData.stock),
+                });
+            }
+
+            fetchProducts(); // 🔄 Atualiza a lista de produtos
+            navigate("/"); // 🔄 Redireciona para a listagem
+        } catch (error) {
+            console.error("Erro ao salvar produto:", error);
+        }
     };
 
     return (
-        <Box component="form" onSubmit={handleSubmit}>
-            {loading ? (
-                <p>Carregando produto...</p>
-            ) : (
-                <Stack spacing={3}>
-                    <TextField
-                        fullWidth
-                        label="Nome do Produto"
-                        value={name}
-                        onChange={(e) => setName(e.target.value)}
-                        required
-                    />
-                    <TextField
-                        fullWidth
-                        type="number"
-                        label="Preço"
-                        value={price}
-                        onChange={(e) => setPrice(Number(e.target.value))}
-                        required
-                    />
-                    <TextField
-                        fullWidth
-                        label="Descrição"
-                        value={description}
-                        onChange={(e) => setDescription(e.target.value)}
-                        multiline
-                        rows={4}
-                    />
-                    <TextField
-                        fullWidth
-                        type="number"
-                        label="Estoque"
-                        value={stock}
-                        onChange={(e) => setStock(Number(e.target.value))}
-                        required
-                    />
-                    <Button variant="contained" type="submit" size="large">
-                        Salvar
-                    </Button>
-                </Stack>
-            )}
+        <Box sx={{ p: 3, maxWidth: 500, mx: "auto" }}>
+            <Typography variant="h4" component="h1" gutterBottom>
+                {id ? "Editar Produto" : "Adicionar Produto"}
+            </Typography>
+            <form onSubmit={handleSubmit}>
+                <TextField
+                    name="name"
+                    label="Nome"
+                    variant="outlined"
+                    fullWidth
+                    required
+                    value={formData.name}
+                    onChange={handleChange}
+                    sx={{ mb: 2 }}
+                />
+                <TextField
+                    name="description"
+                    label="Descrição"
+                    variant="outlined"
+                    fullWidth
+                    multiline
+                    rows={3}
+                    value={formData.description}
+                    onChange={handleChange}
+                    sx={{ mb: 2 }}
+                />
+                <TextField
+                    name="price"
+                    label="Preço"
+                    type="number"
+                    variant="outlined"
+                    fullWidth
+                    required
+                    value={formData.price}
+                    onChange={handleChange}
+                    sx={{ mb: 2 }}
+                />
+                <TextField
+                    name="stock"
+                    label="Estoque"
+                    type="number"
+                    variant="outlined"
+                    fullWidth
+                    required
+                    value={formData.stock}
+                    onChange={handleChange}
+                    sx={{ mb: 2 }}
+                />
+                <Button type="submit" variant="contained" color="primary" fullWidth>
+                    {id ? "Salvar Alterações" : "Adicionar"}
+                </Button>
+            </form>
         </Box>
     );
 };
