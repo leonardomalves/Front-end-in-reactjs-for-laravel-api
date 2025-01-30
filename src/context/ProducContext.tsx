@@ -23,10 +23,12 @@ interface ProductContextType {
   paginationMeta: PaginationMeta | null;
   currentPage: number;
   setCurrentPage: (page: number) => void;
-  fetchProducts: (page?: number) => void;
+  fetchProducts: (page?: number, filters?: Record<string, string>) => void;
   addProduct: (product: Omit<IProduct, "id">) => Promise<void>;
   updateProduct: (id: number, product: Omit<IProduct, "id">) => Promise<void>;
   deleteProduct: (id: number) => Promise<void>;
+  filters: Record<string, string>;
+  setFilters: (filters: Record<string, string>) => void;
 }
 
 const ProductContext = createContext<ProductContextType | undefined>(undefined);
@@ -35,11 +37,12 @@ export const ProductProvider: React.FC<{ children: React.ReactNode }> = ({ child
   const [products, setProducts] = useState<IProduct[]>([]);
   const [paginationMeta, setPaginationMeta] = useState<PaginationMeta | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
+  const [filters, setFilters] = useState<Record<string, string>>({}); // Armazena os filtros aplicados
 
-  // Busca produtos da API conforme a página atual
-  const fetchProducts = async (page: number = currentPage) => {
+  // Busca produtos da API conforme a página atual e filtros aplicados
+  const fetchProducts = async (page: number = currentPage, filters?: Record<string, string>) => {
     try {
-      const response = await getProducts(page);
+      const response = await getProducts(page, filters || {});
       setProducts(response.data);
       setPaginationMeta({
         current_page: response.meta.current_page,
@@ -57,32 +60,28 @@ export const ProductProvider: React.FC<{ children: React.ReactNode }> = ({ child
     fetchProducts(); // 🔄 Busca produtos ao carregar o contexto
   }, []);
 
-
   const handleAddProduct = async (product: Omit<IProduct, "id">) => {
     try {
       await addProduct(product);
-
-      fetchProducts(1); // Sempre recarrega a primeira página após um novo produto
+      fetchProducts(1, filters); // Mantém os filtros ativos após adicionar um produto
     } catch (error) {
       console.error("Erro ao adicionar produto:", error);
     }
   };
 
-  // Atualiza um produto e recarrega a página atual
   const handleUpdateProduct = async (id: number, product: Omit<IProduct, "id">) => {
     try {
       await updateProduct(id, product);
-      fetchProducts(currentPage); // Recarrega a página onde o produto estava
+      fetchProducts(currentPage, filters); // Mantém os filtros ativos após atualizar um produto
     } catch (error) {
       console.error("Erro ao atualizar produto:", error);
     }
   };
 
-  // Exclui um produto e recarrega a página
   const handleDeleteProduct = async (id: number) => {
     try {
       await deleteProduct(id);
-      fetchProducts(currentPage); // Mantém a paginação correta ao excluir
+      fetchProducts(currentPage, filters); // Mantém os filtros ativos após excluir um produto
     } catch (error) {
       console.error("Erro ao deletar produto:", error);
     }
@@ -99,6 +98,8 @@ export const ProductProvider: React.FC<{ children: React.ReactNode }> = ({ child
             addProduct: handleAddProduct,
             updateProduct: handleUpdateProduct,
             deleteProduct: handleDeleteProduct,
+            filters,
+            setFilters,
           }}
       >
         {children}

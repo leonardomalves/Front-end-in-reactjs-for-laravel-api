@@ -11,6 +11,8 @@ import {
     Box,
     IconButton,
     TablePagination,
+    TextField,
+    Button,
 } from "@mui/material";
 import { Edit, Delete } from "@mui/icons-material";
 import { Link } from "react-router-dom";
@@ -19,20 +21,41 @@ import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 
 const ProductList: React.FC = () => {
-    const { products, fetchProducts, deleteProduct, paginationMeta } = useProductContext();
-    const [page, setPage] = useState(0);
+    const { fetchProducts, deleteProduct, products, paginationMeta } = useProductContext();
+    const [page, setPage] = useState(1);
+    const [filters, setFilters] = useState({
+        name: "",
+    });
+    const [searchFilters, setSearchFilters] = useState({
+        name: "",
+    }); // Filtros para busca final
 
-    // Manipula a troca de página
-    const handleChangePage = (_event: unknown, newPage: number) => {
-        setPage(newPage);
-        fetchProducts(newPage + 1); // Chama a API com a nova página
+    // Lida com mudanças nos campos de filtro
+    const handleFilterChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const { name, value } = e.target;
+        setFilters((prevFilters) => ({
+            ...prevFilters,
+            [name]: value,
+        }));
     };
 
-    // Exclui produto e atualiza lista
+    // Executa a busca ao confirmar (Enter ou botão)
+    const handleSearch = () => {
+        setSearchFilters(filters); // Aplica os filtros
+        fetchProducts(page, { name: filters.name }); // Faz a busca com os filtros aplicados
+    };
+
+    // Lida com a troca de páginas
+    const handleChangePage = (_event: unknown, newPage: number) => {
+        setPage(newPage + 1);
+        fetchProducts(newPage + 1, searchFilters); // Busca com a nova página e filtros aplicados
+    };
+
+    // Exclui um produto e atualiza a lista
     const handleDeleteProduct = async (id: number) => {
         if (!window.confirm("Tem certeza que deseja excluir este produto?")) return;
         await deleteProduct(id);
-        fetchProducts(page + 1); // Recarrega a página atual
+        fetchProducts(page, searchFilters); // Atualiza a lista após exclusão
     };
 
     return (
@@ -41,6 +64,20 @@ const ProductList: React.FC = () => {
                 Lista de Produtos
             </Typography>
 
+            {/* Filtros */}
+            <Box sx={{ display: "flex", gap: 2, mb: 3 }}>
+                <TextField
+                    name="name"
+                    label="Filtrar por Nome"
+                    variant="outlined"
+                    value={filters.name}
+                    onChange={handleFilterChange}
+                    onKeyUp={handleSearch}
+                    fullWidth
+                />
+            </Box>
+
+            {/* Tabela de Produtos */}
             <TableContainer component={Paper}>
                 <Table>
                     <TableHead>
@@ -85,7 +122,7 @@ const ProductList: React.FC = () => {
                     component="div"
                     count={paginationMeta.total}
                     rowsPerPage={paginationMeta.per_page}
-                    page={paginationMeta.current_page - 1}
+                    page={page - 1}
                     onPageChange={handleChangePage}
                     rowsPerPageOptions={[]} // Remove opções de troca de "itens por página"
                 />
