@@ -1,50 +1,103 @@
-# React + TypeScript + Vite
+# 📦 Frontend - Gerenciador de Produtos
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Este é o frontend de um sistema de gerenciamento de produtos, desenvolvido com **React.js** e integrado a uma API RESTful.
 
-Currently, two official plugins are available:
+## 🚀 Tecnologias Utilizadas
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react/README.md) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+- **React.js** (com Vite)
+- **TypeScript**
+- **Material UI** (para estilização)
+- **React Router** (para navegação)
+- **Axios** (para comunicação com a API)
 
-## Expanding the ESLint configuration
+---
 
-If you are developing a production application, we recommend updating the configuration to enable type aware lint rules:
+## 📌 Funcionalidades
 
-- Configure the top-level `parserOptions` property like this:
+✅ **Listagem de produtos com paginação**  
+✅ **Cadastro e edição de produtos**  
+✅ **Exclusão de produtos**  
+✅ **Gerenciamento de estado com Context API**  
+✅ **Navegação dinâmica com React Router**  
 
-```js
-export default tseslint.config({
-  languageOptions: {
-    // other options...
-    parserOptions: {
-      project: ['./tsconfig.node.json', './tsconfig.app.json'],
-      tsconfigRootDir: import.meta.dirname,
-    },
-  },
-})
+---
+
+## 🔧 Como Executar o Frontend
+
+### 📌 Pré-requisitos
+
+Antes de rodar o frontend, certifique-se de que tem o **Node.js** e o **NPM** (ou Yarn) instalados.
+
+1. **Clone o repositório:**
+   ```bash
+   git clone git@github.com:leonardomalves/Front-end-in-reactjs-for-laravel-api.git code-project
+   cd code-project
+   ```
+
+2. **Instale as dependências:**
+   ```bash
+   npm install
+   ```
+
+3. **Configure a URL da API no arquivo `src/api.ts`:**
+   ```ts
+   const API_URL = "http://127.0.0.1:8000/api/products";
+   ```
+
+4. **Inicie o servidor de desenvolvimento:**
+   ```bash
+   npm run dev
+   ```
+
+O frontend estará disponível em **http://localhost:5173**.
+
+---
+
+## 📁 Estrutura do Projeto
+
+```
+📂 src/
+ ├── 📂 components/        # Componentes reutilizáveis
+ │   ├── NavBar.tsx        # Barra de navegação
+ │   ├── ProductForm.tsx   # Formulário de produtos
+ │   ├── ProductItem.tsx   # Item de produto individual
+ │   ├── ProductList.tsx   # Listagem de produtos
+ │
+ ├── 📂 context/            # Context API para gerenciamento de estado
+ │   ├── ProductContext.tsx
+ │
+ ├── 📂 pages/              # Páginas principais
+ │   ├── home/              # Página inicial
+ │   │   ├── index.tsx
+ │   ├── editProduct/       # Página de edição/criação de produtos
+ │   │   ├── index.tsx
+ │
+ ├── 📂 services/           # API (requisições HTTP)
+ │   ├── api.ts
+ │
+ ├── App.tsx               # Configuração principal do React
+ ├── main.tsx              # Renderização do React
+ ├── routes.tsx            # Configuração das rotas
+ ├── vite-env.d.ts         # Configuração do Vite
 ```
 
-- Replace `tseslint.configs.recommended` to `tseslint.configs.recommendedTypeChecked` or `tseslint.configs.strictTypeChecked`
-- Optionally add `...tseslint.configs.stylisticTypeChecked`
-- Install [eslint-plugin-react](https://github.com/jsx-eslint/eslint-plugin-react) and update the config:
+---
 
-```js
-// eslint.config.js
-import react from 'eslint-plugin-react'
+## 📜 Rotas do Frontend
 
-export default tseslint.config({
-  // Set the react version
-  settings: { react: { version: '18.3' } },
-  plugins: {
-    // Add the react plugin
-    react,
-  },
-  rules: {
-    // other rules...
-    // Enable its recommended rules
-    ...react.configs.recommended.rules,
-    ...react.configs['jsx-runtime'].rules,
-  },
-})
-```
+| Rota            | Componente             | Descrição |
+|----------------|------------------------|-----------|
+| `/`            | `Home.tsx`              | Lista todos os produtos |
+| `/add`         | `EditProduct.tsx`       | Adiciona um novo produto |
+| `/edit/:id`    | `EditProduct.tsx`       | Edita um produto existente |
+
+---
+
+## 🛠️ Principais Dependências
+
+| Pacote              | Descrição |
+|--------------------|-----------|
+| `react`           | Biblioteca principal do frontend |
+| `react-router-dom` | Gerenciamento de rotas |
+| `axios`           | Consumo da API REST |
+| `@mui/material`   | Estilização e componentes UI |
